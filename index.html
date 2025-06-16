@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css?family=Tomorrow:400,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <title>Juego de memoria- Banco de occidente</title>
+</head>
+
+
+<body>
+
+  <div id="modal-dificultad" class="modal">
+
+    <div class="logo">
+      <img src="img/logo.png" alt="">
+    </div>
+
+    <div class="modal-contenido">
+      <h1 class="modal-titulo">🎮 ¡Comienza el reto!</h1>
+      <h2>Selecciona tu nivel y empieza a jugar </h2>
+      <div class="botones-dificultad">
+        <button class="btn-dificultad" data-dificultad="Facil">Fácil 😊</button>
+        <button class="btn-dificultad" data-dificultad="Intermedio">Intermedio ⚡</button>
+        <button class="btn-dificultad" data-dificultad="Dificil">Difícil 🔥</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="contenedor-general">
+    <h1 class="titulo">🎯 Desafía tu mente</h1>
+    <center>
+      <hr />
+    </center>
+    <h2 class="parrafo">
+      <center>Voltea, recuerda y gana... ¡si puedes!</center>
+    </h2>
+    <div class="contenedor-tarjetas"></div>
+    <div class="pantalla-bloqueada">
+      <h2 class="mensaje">¡Has perdido el juego!</h2>
+    </div>
+  </div>
+
+  <script src="js/script.js"></script>
+</body>
+
+</html>
