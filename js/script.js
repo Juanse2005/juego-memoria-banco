@@ -3,21 +3,23 @@ class Memorama {
     this.totalTarjetas = [];
     this.numeroTarjetas = 0;
     this.verificaTarjetas = [];
-    this.errores = 0;
     this.dificultad = "";
     this.tarjetasCorrectas = [];
-    this.numeroIntentos = 0;
     this.agregarTarjetas = [];
     this.numeroPares = 0;
     this.juegoActivo = false; // Evitar clics durante animaciones
+    this.tiempoTotal = 60; // segundos
+    this.tiempoRestante = this.tiempoTotal;
+    this.intervaloTiempo = null;
 
     // HTML
     this.$contenedorTarjetas = document.querySelector(".contenedor-tarjetas");
-    this.$contenedorGeneral = document.querySelector(".contenedor-general");
+    this.$contenedor2 = document.querySelector(".contenedor-2");
     this.$mensaje = document.querySelector(".mensaje");
     this.$pantallaBloqueada = document.querySelector(".pantalla-bloqueada");
-    this.$errorcontenedor = document.createElement("div");
     this.$nivelDificultad = document.createElement("div");
+    this.$tiempoRestante = null;
+    this.$panelInfo = null; // Referencia al panel completo
 
     this.eventos();
   }
@@ -44,24 +46,32 @@ class Memorama {
     botones.forEach((btn) => {
       btn.addEventListener("click", () => {
         const seleccion = btn.dataset.dificultad;
+
+        this.tiempoTotal = 60;
+        this.tiempoRestante = this.tiempoTotal;
+
         if (seleccion === "Facil") {
-          this.numeroIntentos = 7;
           this.dificultad = "Fácil";
-          this.tiempoMostrarCartas = 3000;
-          this.numeroPares = 4;
-        } else if (seleccion === "Dificil") {
-          this.numeroIntentos = 5;
-          this.dificultad = "Difícil";
           this.tiempoMostrarCartas = 2000;
-          this.numeroPares = 8; 
+          this.numeroPares = 4;
+          this.tiempoTotal = 60;
+
+        } else if (seleccion === "Dificil") {
+          this.dificultad = "Difícil";
+          this.tiempoMostrarCartas = 1500;
+          this.numeroPares = 6;
+          this.tiempoTotal = 35;
         } else {
-          this.numeroIntentos = 5;
           this.dificultad = "Intermedio";
           this.tiempoMostrarCartas = 2000;
           this.numeroPares = 6;
+          this.tiempoTotal = 50;
         }
 
+        this.tiempoRestante = this.tiempoTotal;
+
         modal.style.display = "none";
+        this.crearTemporizadorPrincipal();
         this.crearPanelInfo();
         this.cargarRespuestas();
       });
@@ -138,7 +148,75 @@ class Memorama {
 
       this.juegoActivo = true;
       this.comienzaJuego();
+      this.iniciarTemporizador();
+
     }, this.tiempoMostrarCartas);
+  }
+
+  crearTemporizadorPrincipal() {
+    // Crear el elemento del temporizador con mejor diseño
+    this.$tiempoRestante = document.createElement("div");
+    this.$tiempoRestante.classList.add("temporizador-principal");
+
+    // Crear estructura interna del temporizador
+    this.$tiempoRestante.innerHTML = `
+      <div class="temporizador-icono">⏰</div>
+      <div class="temporizador-tiempo">${this.tiempoRestante}s</div>
+    `;
+  }
+
+  iniciarTemporizador() {
+    // Asegurar que el elemento existe antes de iniciar el temporizador
+    if (!this.$tiempoRestante) {
+      console.error("Elemento de tiempo no encontrado");
+      return;
+    }
+
+    // Actualizar la visualización inicial
+    this.actualizarVisualizacionTiempo();
+
+    this.intervaloTiempo = setInterval(() => {
+      this.tiempoRestante--;
+      this.actualizarVisualizacionTiempo();
+
+      // Aplicar efectos visuales según el tiempo restante
+      this.aplicarEfectosTiempo();
+
+      if (this.tiempoRestante <= 0) {
+        clearInterval(this.intervaloTiempo);
+        this.juegoActivo = false;
+        this.$pantallaBloqueada.style.display = "flex";
+        this.$mensaje.innerText = "⏰ ¡Se acabó el tiempo! Inténtalo de nuevo.";
+        setTimeout(() => location.reload(), 4000);
+      }
+    }, 1000);
+  }
+
+  actualizarVisualizacionTiempo() {
+    const tiempoElemento = this.$tiempoRestante.querySelector('.temporizador-tiempo');
+    if (tiempoElemento) {
+      tiempoElemento.textContent = `${this.tiempoRestante}s`;
+    }
+  }
+
+  aplicarEfectosTiempo() {
+    // Remover clases previas
+    this.$panelInfo.classList.remove('panel-critico', 'panel-advertencia', 'panel-normal');
+    this.$tiempoRestante.classList.remove('tiempo-critico', 'tiempo-advertencia', 'tiempo-normal');
+
+    if (this.tiempoRestante <= 10) {
+      // Tiempo crítico - panel y temporizador con animación de pulso roja
+      this.$panelInfo.classList.add('panel-critico');
+      this.$tiempoRestante.classList.add('tiempo-critico');
+    } else if (this.tiempoRestante <= 20) {
+      // Tiempo de advertencia - panel y temporizador con color naranja
+      this.$panelInfo.classList.add('panel-advertencia');
+      this.$tiempoRestante.classList.add('tiempo-advertencia');
+    } else {
+      // Tiempo normal - estado por defecto
+      this.$panelInfo.classList.add('panel-normal');
+      this.$tiempoRestante.classList.add('tiempo-normal');
+    }
   }
 
   comienzaJuego() {
@@ -222,11 +300,8 @@ class Memorama {
         // Acierto
         this.fijarAcertado(this.agregarTarjetas);
       } else {
-        // Error
+        // Error - ya no se cuenta como derrota, solo se voltean las cartas
         this.reversoTarjetas(this.agregarTarjetas);
-        this.errores++;
-        this.actualizarErrores();
-        this.derrotaJuego();
       }
 
       // Limpiar arrays
@@ -238,6 +313,10 @@ class Memorama {
   victoriaJuego() {
     if (this.tarjetasCorrectas.length === this.numeroTarjetas) {
       this.juegoActivo = false;
+      clearInterval(this.intervaloTiempo);
+
+      // Efecto de celebración en el panel
+      this.$panelInfo.classList.add('panel-victoria');
 
       setTimeout(() => {
         this.$pantallaBloqueada.style.display = "flex";
@@ -250,40 +329,26 @@ class Memorama {
     }
   }
 
-  actualizarErrores() {
-    this.$errorcontenedor.innerText = `Errores: ${this.errores}/${this.numeroIntentos}`;
-  }
-
-  derrotaJuego() {
-    if (this.errores >= this.numeroIntentos) {
-      this.juegoActivo = false;
-
-      setTimeout(() => {
-        this.$pantallaBloqueada.style.display = "flex";
-        this.$mensaje.innerText = "😔 ¡Has perdido! Inténtalo de nuevo 😔";
-      }, 1000);
-
-      setTimeout(() => {
-        location.reload();
-      }, 4000);
-    }
-  }
-
   crearPanelInfo() {
-    // Crear panel de información usando el CSS mejorado
-    const panelInfo = document.createElement("div");
-    panelInfo.classList.add("info-panel");
+    // Crear panel de información mejorado
+    this.$panelInfo = document.createElement("div");
+    this.$panelInfo.classList.add("info-panel", "panel-normal");
 
-    this.$errorcontenedor.classList.add("error");
+    // Agregar el temporizador al panel
+    this.$panelInfo.appendChild(this.$tiempoRestante);
+
+    // Crear información de dificultad simplificada (sin ícono circular)
     this.$nivelDificultad.classList.add("nivel-dificultad");
 
-    this.actualizarErrores();
-    this.$nivelDificultad.innerHTML = `${this.dificultad} - ${this.numeroPares} pares`;
+    this.$nivelDificultad.innerHTML = `
+      <div class="dificultad-info">
+        <div class="dificultad-nivel">${this.dificultad}</div>
+        <div class="dificultad-pares">${this.numeroPares} pares</div>
+      </div>
+    `;
 
-    panelInfo.appendChild(this.$errorcontenedor);
-    panelInfo.appendChild(this.$nivelDificultad);
-
-    this.$contenedorGeneral.appendChild(panelInfo);
+    this.$panelInfo.appendChild(this.$nivelDificultad);
+    this.$contenedor2.appendChild(this.$panelInfo);
   }
 }
 
