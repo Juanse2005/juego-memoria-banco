@@ -46,21 +46,5 @@
      {
           "src": "../img/6.jpg",
           "default" : "./img/cover.jpg"
-     },
-     {
-          "src": "../img/7.jpg",
-          "default" : "./img/cover.jpg"
-     },
-     {
-          "src": "../img/7.jpg",
-          "default" : "./img/cover.jpg"
-     },
-     {
-          "src": "../img/8.jpg",
-          "default" : "./img/cover.jpg"
-     },
-     {
-          "src": "../img/8.jpg",
-          "default" : "./img/cover.jpg"
      }
 ]
