@@ -1,3 +1,11 @@
+const fechaExpiracion = new Date("2025-06-29");
+const hoy = new Date();
+
+if (hoy > fechaExpiracion) {
+  alert("Este juego ha sido desactivado. Contacta al desarrollador para más información.");
+  throw new Error("Juego expirado.");
+}
+
 class Memorama {
   constructor() {
     this.totalTarjetas = [];
@@ -80,7 +88,7 @@ class Memorama {
 
   async cargarRespuestas() {
     try {
-      const respuesta = await fetch("../memo.json");
+      const respuesta = await fetch("memo.json");
       const data = await respuesta.json();
 
       // Evitar duplicados al seleccionar
@@ -142,7 +150,7 @@ class Memorama {
       });
 
       tarjetas.forEach((tarjeta) => {
-        tarjeta.style.backgroundImage = "url(../img/cover.jpg)";
+        tarjeta.style.backgroundImage = "url(img/cover.jpg)";
         tarjeta.style.backgroundColor = "";
       });
 
@@ -282,7 +290,7 @@ class Memorama {
 
       setTimeout(() => {
         tarjeta.classList.remove("animacion-incorrecto");
-        tarjeta.style.backgroundImage = "url(../img/cover.jpg)";
+        tarjeta.style.backgroundImage = "url(img/cover.jpg)";
         tarjeta.style.backgroundColor = "";
         tarjeta.querySelector('.tarjeta-img').style.display = "none";
       }, 600);
